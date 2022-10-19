@@ -28,8 +28,8 @@ float perlin(vec2 p, float dim, float time) {
 }
 
 void main() {
-    float dims = 100.;
-    float myTime = time;
+    float dims = 200.;
+    float myTime = 0.00000000000001 * time;
 
 //    vec3 sunColor = vec3(myNoise, myNoise, myNoise);
 

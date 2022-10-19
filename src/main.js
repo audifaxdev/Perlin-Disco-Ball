@@ -2,8 +2,23 @@ import * as THREE from "three";
 import vertexShader from './vertex.glsl';
 import fragmentShader from './fragment.glsl';
 import fragmentPost from './fragmentPost.glsl';
+import vertexPost from './vertexPost.glsl';
 import {OrbitControls} from './OrbitControls';
 import Stats from 'stats.js';
+
+function screenXY(obj, camera){
+
+  var vector = obj.clone();
+  // console.log({before: JSON.stringify(vector)})
+
+  vector.project(camera);
+  // console.log({after: JSON.stringify(vector)})
+
+
+
+  return vector;
+
+};
 
 class App {
   constructor () {
@@ -22,7 +37,7 @@ class App {
     this.renderer.setSize(innerWidth, innerHeight);
     this.container.appendChild(this.renderer.domElement);
     this.camera = new THREE.PerspectiveCamera(50, this.width / this.height);
-    this.camera.position.set(0,0, 10);
+    this.camera.position.set(0,0, 8);
 
     const frustrumSize = 1;
     const aspect = 1;
@@ -60,9 +75,10 @@ class App {
       side: THREE.DoubleSide,
       uniforms: {
         uMap: { value: null},
+        oPosition: { value: new THREE.Uniform(screenXY(this.sphere.position, this.camera))}
       },
       fragmentShader: fragmentPost,
-      vertexShader
+      vertexShader: vertexPost
     });
 
     this.postQuadMesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(1,1), this.materialOrtho);
@@ -86,19 +102,24 @@ class App {
     this.camera.updateProjectionMatrix();
   }
 
-  render = () => {
+  render = (time) => {
     this.sphere.rotateY(0.001);
+    this.sphere.rotateX(0.001);
+    this.sphere.rotateZ(0.001);
     this.stats.end();
 
     this.stats.begin();
     requestAnimationFrame(this.render);
-    this.time += 0.000000001;
+    this.time = time;
     this.material.uniforms.time.value = this.time;
+
+    let screenCoord = screenXY(this.sphere.position, this.camera);
 
     this.renderer.setRenderTarget(this.baseTexture);
     this.renderer.render(this.scene, this.camera);
     this.renderer.setRenderTarget(null);
     this.materialOrtho.uniforms.uMap.value = this.baseTexture.texture;
+    this.materialOrtho.uniforms.oPosition.value = screenCoord;
     this.renderer.render(this.scenePost, this.cameraPost);
 
   }
